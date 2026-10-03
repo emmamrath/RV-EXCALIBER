@@ -2,6 +2,21 @@
 
 # RV-EXCALIBER
 
+## Changes made to this version, and not necessarily reflected in the documentation below:
+
+ - Instead of using MCAP score, deleteriousness of missense variants is assigned by Alphamissense (P for likely_pathogenic) or Revel (score >= 0.644).
+   In either of those cases, the "MCAP" score is set to 1, otherwise it remains at 0 for missense variants.
+   Please set the input "MCAP" threshold to 0.5.
+
+ - For get_RVBurdenMatrix_internal_rvexcaliber.clean.sh and get_RVBurdenMatrix_gnomAD_rvexcaliber.clean.sh,
+   please choose the strategy of either *COUNTS_INDELS_SEPARATELY.sh or *.COUNTS_OVERLAPPING_FRAMESHIFT_INDELS_TOGETHER.sh
+
+ - If your internal cohort variants contain missing genotypes for reference alleles that were not called as alt-alleles (ie, they were not joint-called and instead were merged separately),
+   then use the fill_missing_a2 script (either get_RVBurdenMatrix_internal_rvexcaliber.clean.fill_missing_a2.COUNTS_INDELS_SEPARATELY.sh
+   or get_RVBurdenMatrix_internal_rvexcaliber.clean.fill_missing_a2.COUNTS_OVERLAPPING_FRAMESHIFT_INDELS_TOGETHER.sh).
+   Otherwise, if your ref-allele genotypes correctly appear as 0/0, then use the usual script
+   (ie, either get_RVBurdenMatrix_internal_rvexcaliber.clean.COUNTS_INDELS_SEPARATELY.sh or get_RVBurdenMatrix_internal_rvexcaliber.clean.COUNTS_INDELS_SEPARATELY.sh).
+
 ## Table of Contents
 
  - [Welcome](#welcome)

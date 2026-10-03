@@ -23,6 +23,15 @@
 #=======================================================================================================================
 
 
+# This script is designed for processing both internal cohort dataset and gnomad dataset.
+# It has an is_gnomAD argument, which is "Y" in the gnomAD script, and an internal MAF threshold, which the gnomAD script passes as NA.
+# Both only make sense if the internal script calls it too, with "N" and a real threshold.
+# Our internal run's log ("Filtering: gnomAD MAF, internal MAF, MCAP") matches that.
+# get_Varlist_rvexcaliber.R is called by both pipelines.
+# The internal one passes "N" with your internal MAF threshold, and the gnomAD one passes "Y" with NA.
+# So both shell scripts need to call this copy of the script that has been renamed to get_Varlist_rvexcaliber.COUNTS_FRAMESHIFT_OVERLAPPING_INDELS_TOGETHER.R,
+# and both need to annotate their input first.
+# The internal R-input file is ${outdir}/${internal_dataset}_pruned_annotation_for_R_input_${coverage}.txt.gz
 
 
 # Script start
@@ -159,6 +168,8 @@ getBinary <- function(df, thresholds, filter, int_MAF=internal_MAF_threshold) {
 
     if (filter == "MAF") {
 
+        int_MAF <- if (is.na(int_MAF)) Inf else int_MAF
+
         if (ncol(df) > 5) {
 
             if (length(which(apply(df,1,function(x) sum(is.na(x))==5)))>=1) {
@@ -211,7 +222,7 @@ getBinary <- function(df, thresholds, filter, int_MAF=internal_MAF_threshold) {
                          binary=
                            ifelse(
                              apply(
-                               df[-no_MAF,-ncol(df[-no_MAF])],
+                               df[-no_MAF,-ncol(df)],
                                1,
                                function(x)
                                all(
@@ -462,23 +473,14 @@ getExtract <- function(thresholds_a, thresholds_b, mat_a, mat_b) {
     CMAC <-
       lapply(
         pairwise_int,
-        function(x)
-        data.frame(
-          Gene=
-            names(
-              tapply(
-                ID[ID$ID %in% x,]$gnomAD_MAF,ID[ID$ID %in% x,]$Gene,CMAC_f
-              )
-            ),
-          gnomAD_CMAC=
-            as.numeric(
-              tapply(
-                ID[ID$ID %in% x,]$gnomAD_MAF,ID[ID$ID %in% x,]$Gene,CMAC_f
-              )
-            )
-        )
-     )
-
+        function(x) {
+          if (length(x) == 0) {
+            return(data.frame(Gene = character(0), gnomAD_CMAC = numeric(0)))
+          }
+          tt <- tapply(ID[ID$ID %in% x,]$gnomAD_MAF, ID[ID$ID %in% x,]$Gene, CMAC_f)
+          data.frame(Gene = names(tt), gnomAD_CMAC = as.numeric(tt))
+        }
+      )
 
     # Merge on Gene
 
@@ -590,7 +592,9 @@ if (grepl(",",args[4])) {
 }
 
 internal_MAF_threshold <-
-  args[5]
+  as.numeric(
+    args[5]
+  )
 
 if (grepl(",",args[6])) {
 
@@ -664,10 +668,6 @@ if (is_gnomAD == "Y") {
         dfAll
       )
     )
-
-    dfAll <-
-      dfAll[,c(1:13,15,14)]
-
 }
 
 
@@ -691,43 +691,16 @@ MCAP_fields <-
     "pathogenic_missense"
   )
 
-  dfMAF <-
-    dfAll[,MAF_fields]
+tract_fields <- paste0(MAF_fields[1:5], "_tract")
+use_tract    <- all(tract_fields %in% colnames(dfAll))
+cat("Tract-pooled gnomAD AF used for MAF filter:", use_tract, "\n")
 
-  dfMCAP <-
-    dfAll[,MCAP_fields]
+# filter on tract-pooled AFs when present; CMAC always uses each variant's own AF
+dfMAF  <- dfAll[, if (use_tract) c(tract_fields, "AF_int") else MAF_fields]
+dfMCAP <- dfAll[, MCAP_fields]
 
-
-# N.B. Due to the potenial presence of "." in annoation fields, all numerical fields
-# will automatically be read in as factor variables. So, must convert to numeric
-# prior to proceeding to getBinary function
-
-
-dfMAF <-
-  suppressWarnings( # 'as.numeric' will intoduce 'NA' by coersion, this is normal
-    mutate_all(     # behaviour and is the reason for the warning
-      dfMAF,
-      function(x)
-      as.numeric(
-        as.character(
-          x
-        )
-      )
-    )
-  )
-
-dfMAF2 <-
-  suppressWarnings( # 'as.numeric' will intoduce 'NA' by coersion, this is normal
-    mutate_all(     # behaviour and is the reason for the warning
-      dfMAF,
-      function(x)
-      as.numeric(
-        as.character(
-          x
-        )
-      )
-    )
-  )
+dfMAF  <- suppressWarnings(dplyr::mutate_all(dfMAF, function(x) as.numeric(as.character(x))))
+dfMAF2 <- suppressWarnings(dplyr::mutate_all(dfAll[, MAF_fields], function(x) as.numeric(as.character(x))))
 
 
 # Set 'NA' fields to 0 in dfMAF2 so that missing gnomAD allele frequencies
@@ -735,18 +708,22 @@ dfMAF2 <-
 # dfMAF will be left as is, since missing gnomAD allele frequencies will be
 # set to 'internal_MAF_threshold'
 
-
 dfMAF2[is.na(dfMAF2)] <-
   0
 
 dfMCAP$pathogenic_missense <-
-  suppressWarnings( # Set 'NA's in pathogenic_missense to 0 for now (these are variants that are not
+  suppressWarnings( # Set 'NA's in dfMCAP to 0 for now (these are variants that are not
     as.numeric(     # nonsynonymous SNVs or those that have a Alphamissense P for likely_pathogenic or Revel score >= 0.644)
       as.character(
         dfMCAP$pathogenic_missense
       )
     )
   )
+
+
+# dfMAF drives the MAF filter, so it now uses the pooled frequencies.
+# dfMAF2 feeds the ethnicity weighting and the gnomAD burden count (ID$gnomAD_MAF), so it keeps each variant's own frequency.
+# For files without *_tract columns, use_tract is FALSE and the script behaves exactly as the original.
 
 
 # Index gnomAD ancestry

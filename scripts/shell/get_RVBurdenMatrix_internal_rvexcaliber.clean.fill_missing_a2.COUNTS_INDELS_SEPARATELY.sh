@@ -161,7 +161,7 @@
 # ** < Please enter the full path to the cloned '/rvexcaliber' directory (example below): > **
 
 
-path_to_rvexcaliber=""
+path_to_rvexcaliber="/srv/scratch/z3531501/software/rvexcaliber/RV-EXCALIBER"
 
 
 # Example: "/genetics/rvexcaliber"
@@ -170,7 +170,7 @@ path_to_rvexcaliber=""
 # ** < Please enter the full path the directory containing the ANNOVAR perl scripts (example below): > **
 
 
-annovar=""
+annovar="/srv/scratch/z3531501/software/annovar/annovar"
 
 
 # Example: "/genetics/tools/annovar"
@@ -194,7 +194,8 @@ annovar=""
 # ** < Please enter the full path the plink (version 1.9) command-line executable (example below): > **
 
 
-plink=""
+module load plink
+plink="$(which plink)"
 
 
 # Example: "/genetics/tools/plink_1.9/plink"
@@ -204,7 +205,7 @@ plink=""
 # Note: this path can be left blank if the 'coverage' is set to "rcc"
 
 
-bedtools=""
+bedtools="/srv/scratch/z3531501/software/bedtools/bedtools2/bin/bedtools"
 
 
 # Example: "/genetics/tools/bedtools2/bin/intersectBed"
@@ -694,6 +695,52 @@ if [[ $# = 9 ]]; then
         stop_if_error
 
 
+        # Recode missing genotypes as homozygous reference (0/0), since these
+        # PLINK files were built from per-sample-called VCFs merged together
+        # without reference-confidence blocks -- a missing genotype here means
+        # "this sample's caller made no variant call at this site", which for
+        # a well-covered exonic position should be interpreted as homozygous
+        # reference, not truly missing data. Left as -is, PLINK's internal
+        # allele frequency calculation only counts non-missing genotypes,
+        # which badly inflates AF_int for rare variants with very few callers
+        # (e.g. 3 heterozygous carriers out of 292 samples, with everyone else
+        # missing, computes as AF=0.5 instead of the true ~0.005).
+
+
+        function fill_missing_as_ref {(
+
+            set -e
+
+            echo -e "\n"
+            echo "Recoding missing genotypes as homozygous reference for ${internal_dataset}"
+
+            ${plink} --noweb \
+            \
+            --silent \
+            \
+            --bfile ${outdir}/${internal_dataset}_preprocessed \
+            \
+            --fill-missing-a2 --keep-allele-order \
+            \
+            --make-bed \
+            \
+            --out ${outdir}/${internal_dataset}_preprocessed_filled
+
+            mv ${outdir}/${internal_dataset}_preprocessed_filled.bed ${outdir}/${internal_dataset}_preprocessed.bed
+
+            mv ${outdir}/${internal_dataset}_preprocessed_filled.bim ${outdir}/${internal_dataset}_preprocessed.bim
+
+            mv ${outdir}/${internal_dataset}_preprocessed_filled.fam ${outdir}/${internal_dataset}_preprocessed.fam
+
+            rm -f ${outdir}/${internal_dataset}_preprocessed_filled.log
+
+            rm -f ${outdir}/${internal_dataset}_preprocessed_filled.nosex
+
+        )}
+        fill_missing_as_ref
+        stop_if_error
+
+
         # Generate ANNOVAR-ready file
 
 
@@ -799,7 +846,7 @@ if [[ $# = 9 ]]; then
 
             awk 'OFS="\t" {$1=$1}1 ' > ${outdir}/${internal_dataset}_preprocessed.mod.frq
 
-            rm -f ${outdir}/${internal_dataset}_preprocessed.frq
+            #rm -f ${outdir}/${internal_dataset}_preprocessed.frq
 
         )}
         get_internal_AF
@@ -935,9 +982,9 @@ if [[ $# = 9 ]]; then
 
             gzip -f ${outdir}/${internal_dataset}.${reference}_multianno.txt
 
-            rm -f ${outdir}/${internal_dataset}_preprocessed.frq
+            #rm -f ${outdir}/${internal_dataset}_preprocessed.frq
 
-            rm -f ${outdir}/${internal_dataset}_preprocessed.mod.frq
+            #rm -f ${outdir}/${internal_dataset}_preprocessed.mod.frq
 
         )}
         prep_for_R_input

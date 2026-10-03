@@ -115,7 +115,8 @@
 # ** < Please enter the full path to the cloned '/rvexcaliber' directory (example below): > **
 
 
-path_to_rvexcaliber=""
+#path_to_rvexcaliber=""
+path_to_rvexcaliber=/srv/scratch/z3531501/software/rvexcaliber/RV-EXCALIBER
 
 
 # Example: "/genetics/rvexcaliber"
