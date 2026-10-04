@@ -116,7 +116,7 @@
 
 
 #path_to_rvexcaliber=""
-path_to_rvexcaliber=/srv/scratch/z3531501/software/rvexcaliber/RV-EXCALIBER
+path_to_rvexcaliber=/srv/scratch/z3531501/software/RV-EXCALIBER-fork
 
 
 # Example: "/genetics/rvexcaliber"
@@ -383,7 +383,7 @@ if [[ $# = 6 ]]; then
 
         set -e
 
-        tracts=/srv/scratch/z3531501/software/rvexcaliber/RV-EXCALIBER/gnomAD_211_exomes_hg19_additional_files/gnomAD_211_exome_fs_indel_tracts.txt.gz
+        tracts=/srv/scratch/z3531501/software/RV-EXCALIBER-fork/gnomAD_211_exomes_hg19_additional_files/gnomAD_211_exome_fs_indel_tracts.txt.gz
 
         if [[ ! -f ${tracts} ]]; then
             echo "Error: tracts file not found: ${tracts}" >&2

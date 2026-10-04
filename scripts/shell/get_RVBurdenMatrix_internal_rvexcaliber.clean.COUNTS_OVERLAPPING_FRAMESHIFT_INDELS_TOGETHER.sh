@@ -161,7 +161,7 @@
 # ** < Please enter the full path to the cloned '/rvexcaliber' directory (example below): > **
 
 
-path_to_rvexcaliber="/srv/scratch/z3531501/software/rvexcaliber/RV-EXCALIBER"
+path_to_rvexcaliber="/srv/scratch/z3531501/software/RV-EXCALIBER-fork"
 
 
 # Example: "/genetics/rvexcaliber"
@@ -751,7 +751,7 @@ if [[ $# = 9 ]]; then
             rm -f ${outdir}/${internal_dataset}.annovarInput*
 
             echo -e "\n"
-            echo "Initiating refGene, gnomAD_211, and dbNSFP M-CAP annotations for ${internal_dataset}"
+            echo "Initiating refGeneWithVer, gnomAD_211, and dbNSFP 4.7a (REVEL/AlphaMissense) annotations for ${internal_dataset}"
 
             awk 'BEGIN {FS=OFS="\t"} {
 
@@ -790,9 +790,11 @@ if [[ $# = 9 ]]; then
             \
             -remove \
             \
-            -protocol refGene,gnomad211_exome,dbnsfp35c \
+            -protocol refGeneWithVer,gnomad211_exome,dbnsfp47a \
             \
             -operation g,f,f \
+            \
+            -arg -exonicsplicing,, \
             \
             -nastring . \
             \
@@ -868,7 +870,7 @@ if [[ $# = 9 ]]; then
             echo -e "\n"
             echo "Re-arranging annovar annotation file to a format used for R-script filtering"
 
-            egrep -w 'refGene|exonic|splicing' ${outdir}/${internal_dataset}.${reference}_multianno.txt |
+            egrep -w 'refGeneWithVer|exonic|splicing' ${outdir}/${internal_dataset}.${reference}_multianno.txt |
 
             awk 'BEGIN {
 
@@ -885,13 +887,19 @@ if [[ $# = 9 ]]; then
 
             {
 
+                ef = $(id["ExonicFunc.refGeneWithVer"]); gsub(/ /, "_", ef)
+
+                rev = $(id["REVEL_score"]); am = $(id["AlphaMissense_pred"])
+
+                pm = ((rev != "." && rev + 0 >= 0.644) || am == "P") ? 1 : 0
+
                 print $(id["Chr"]), $(id["Start"]), $(id["Ref"]), $(id["Alt"]), $(id["Alt"]),
 
-                $(id["Func.refGene"]), $(id["Gene.refGene"]), $(id["ExonicFunc.refGene"]),
+                $(id["Func.refGeneWithVer"]), $(id["Gene.refGeneWithVer"]), ef,
 
                 $(id["AF_nfe"]), $(id["AF_afr"]), $(id["AF_sas"]),
 
-                $(id["AF_eas"]), $(id["AF_amr"]), $(id["M-CAP_score"])
+                $(id["AF_eas"]), $(id["AF_amr"]), pm
 
             }' |
 
@@ -945,7 +953,7 @@ if [[ $# = 9 ]]; then
 
                 "AF_nfe", "AF_afr", "AF_sas",
 
-                "AF_eas", "AF_amr", "M-CAP_score"
+                "AF_eas", "AF_amr", "pathogenic_missense"
 
             }1' |
 
@@ -1171,7 +1179,7 @@ if [[ $# = 9 ]]; then
 
             set -e
 
-            tracts=/srv/scratch/z3531501/software/rvexcaliber/RV-EXCALIBER/gnomAD_211_exomes_hg19_additional_files/gnomAD_211_exome_fs_indel_tracts.txt.gz
+            tracts=/srv/scratch/z3531501/software/RV-EXCALIBER-fork/gnomAD_211_exomes_hg19_additional_files/gnomAD_211_exome_fs_indel_tracts.txt.gz
             r_input=${outdir}/${internal_dataset}_pruned_annotation_for_R_input_${coverage}
 
             if [[ ! -f ${tracts} ]]; then

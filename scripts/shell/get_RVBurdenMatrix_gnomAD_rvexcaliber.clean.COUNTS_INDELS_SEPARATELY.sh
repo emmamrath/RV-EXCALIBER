@@ -116,7 +116,7 @@
 
 
 #path_to_rvexcaliber=""
-path_to_rvexcaliber=/srv/scratch/z3531501/software/rvexcaliber/RV-EXCALIBER
+path_to_rvexcaliber=/srv/scratch/z3531501/software/RV-EXCALIBER-fork
 
 
 # Example: "/genetics/rvexcaliber"

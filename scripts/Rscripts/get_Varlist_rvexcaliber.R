@@ -211,7 +211,7 @@ getBinary <- function(df, thresholds, filter, int_MAF=internal_MAF_threshold) {
                          binary=
                            ifelse(
                              apply(
-                               df[-no_MAF,-ncol(df[-no_MAF])],
+                               df[-no_MAF,-ncol(df)],
                                1,
                                function(x)
                                all(
