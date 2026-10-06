@@ -17,6 +17,17 @@
    Otherwise, if your ref-allele genotypes correctly appear as 0/0, then use the usual script
    (ie, either get_RVBurdenMatrix_internal_rvexcaliber.clean.COUNTS_INDELS_SEPARATELY.sh or get_RVBurdenMatrix_internal_rvexcaliber.clean.COUNTS_INDELS_SEPARATELY.sh).
 
+ - Test a set of genes, such as the provided Huang et al. Cancer predisposition genes:
+
+      Rscript RV-EXCALIBER-fork/scripts/Rscripts/panel_burden_test.R  <run_directory> \
+         <input_file_prefix> 0.001_0.5_nfe90_amr7_eas3_rcc  RV-EXCALIBER-fork/scripts/Rscripts/huang_2018_cancer_predisposition_genes.txt
+
+    The genes list file contains 1 gene name per row. The provided list came from:
+    Huang KL, Mashl RJ, Wu Y, et al.
+    Pathogenic Germline Variants in 10,389 Adult Cancers. 
+    Cell. 2018 Apr 5;173(2):355-370.e14. doi: 10.1016/j.cell.2018.03.039. PMID: 29625052; PMCID: PMC5949147.
+
+
 ## Table of Contents
 
  - [Welcome](#welcome)
