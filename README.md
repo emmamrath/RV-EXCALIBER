@@ -17,7 +17,8 @@
    Otherwise, if your ref-allele genotypes correctly appear as 0/0, then use the usual script
    (ie, either get_RVBurdenMatrix_internal_rvexcaliber.clean.COUNTS_INDELS_SEPARATELY.sh or get_RVBurdenMatrix_internal_rvexcaliber.clean.COUNTS_INDELS_SEPARATELY.sh).
 
- - Test a set of genes, such as the provided Huang et al. Cancer predisposition genes:
+ - In addition to testing each gene individually for an excess burden in the main part of this pipeline,
+   you can also test a set of genes as one set, such as the provided Huang et al. Cancer predisposition genes:
 
       Rscript RV-EXCALIBER-fork/scripts/Rscripts/panel_burden_test.R  <run_directory> \
          <input_file_prefix> 0.001_0.5_nfe90_amr7_eas3_rcc  RV-EXCALIBER-fork/scripts/Rscripts/huang_2018_cancer_predisposition_genes.txt
@@ -27,6 +28,18 @@
     Pathogenic Germline Variants in 10,389 Adult Cancers. 
     Cell. 2018 Apr 5;173(2):355-370.e14. doi: 10.1016/j.cell.2018.03.039. PMID: 29625052; PMCID: PMC5949147.
 
+- Gene-level tests compare small allele counts (typically 1–10 expected per gene). 
+  Exact tests on small counts give conservative p-values, so a standard QQ plot falls below y = x even when the data are well calibrated. 
+  Three plots are produced to separate this effect from genuine miscalibration: 
+
+1. **Standard** – RV-EXCALIBER p-values against the uniform distribution (as produced by the pipeline). 
+   Expected to lie below y = x because of discreteness. 
+
+2. **Mid-p** – Poisson mid-p values, P(X > observed) + ½·P(X = observed), against the uniform distribution. 
+   The mid-p removes most of the discreteness bias, so well-calibrated data should lie close to y = x.
+
+3. **Discrete null** – Poisson p-values against p-values simulated under the null for each gene's own expected count. 
+   Points within the band indicate data consistent with a perfectly calibrated discrete test.
 
 ## Table of Contents
 
