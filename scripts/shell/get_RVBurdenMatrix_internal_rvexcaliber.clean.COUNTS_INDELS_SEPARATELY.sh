@@ -753,33 +753,38 @@ if [[ $# = 9 ]]; then
             echo -e "\n"
             echo "Initiating refGeneWithVer, gnomAD_211, and dbNSFP 4.7a (REVEL/AlphaMissense) annotations for ${internal_dataset}"
 
-            awk 'BEGIN {FS=OFS="\t"} {
-
-                print $1, $4, $4, $6, $5
-
-            }' ${outdir}/${internal_dataset}_preprocessed.bim |
-
-            # ORIGINAL (replaced): set End = Start + (len(REF) - len(ALT)) only when REF > ALT.
-            # Correct for simple deletions, but leaves End = Start for block substitutions
-            # (e.g. ACGC>CTGT) and too short for complex indels (e.g. CTGGG>GT), so ANNOVAR
-            # rejected those variants as invalid input and they were never annotated.
-
+            # REPLACED: the original pipeline wrote an ANNOVAR avinput file with VCF-style
+            # (anchored) alleles, e.g. GTACC...CGCT > G. For indels whose anchor base lies
+            # outside the CDS (exon boundaries), ANNOVAR then annotated them as substitutions
+            # spanning the boundary (e.g. "frameshift substitution") whereas the gnomAD control,
+            # annotated via -vcfinput, gets the correct class (e.g. "nonframeshift deletion").
+            # An earlier fix here also set End = Start + len(REF) - 1 so block substitutions and
+            # complex indels were not rejected; -vcfinput makes both steps unnecessary.
+            #
             #awk 'BEGIN {FS=OFS="\t"} {
             #
-            #  if  (length($4) > length($5)) $3=$3+(length($4)-length($5))
+            #    print $1, $4, $4, $6, $5
+            #
+            #}' ${outdir}/${internal_dataset}_preprocessed.bim |
+            #
+            #awk 'BEGIN {FS=OFS="\t"} {
+            #
+            #  $3 = $2 + length($4) - 1
             #
             #}1' > ${outdir}/${internal_dataset}.annovarInput
 
-            # FIX: End = Start + len(REF) - 1 for every variant, i.e. End covers all REF bases.
-            # Identical to the original for SNVs, insertions and simple deletions, and also
-            # correct for block substitutions and complex indels, so ANNOVAR annotates them
-            # (consistent with the gnomAD control, which handles them via -vcfinput).
+            # NEW: write a minimal VCF from the bim (REF = A2, ALT = A1, ID = chr:pos:ref:alt,
+            # dummy genotype) and annotate it with -vcfinput, exactly as the gnomAD control was,
+            # so both sides receive identical allele handling.
 
-            awk 'BEGIN {FS=OFS="\t"} {
-
-              $3 = $2 + length($4) - 1
-
-            }1' > ${outdir}/${internal_dataset}.annovarInput
+            awk 'BEGIN {
+                FS = OFS = "\t"
+                print "##fileformat=VCFv4.2"
+                print "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">"
+                print "#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "DUMMY"
+            } {
+                print $1, $4, $1 ":" $4 ":" $6 ":" $5, $6, $5, ".", "PASS", ".", "GT", "0/1"
+            }' ${outdir}/${internal_dataset}_preprocessed.bim > ${outdir}/${internal_dataset}.annovarInput.vcf
 
         )}
         prep_for_annovar
@@ -798,11 +803,19 @@ if [[ $# = 9 ]]; then
 
             rm -f ${outdir}/${internal_dataset}.${reference}_multianno*
 
+            # Annotate the VCF written by prep_for_annovar with -vcfinput, using exactly the
+            # same command as the gnomAD control build (no -polish, which the control did not use
+            # and which only affects the AAChange column).
+
             perl ${annovar}/table_annovar.pl \
             \
-            -buildver ${reference} \
+            ${outdir}/${internal_dataset}.annovarInput.vcf \
             \
-            ${outdir}/${internal_dataset}.annovarInput \
+            ${annovar}/humandb/ \
+            \
+            -vcfinput \
+            \
+            -buildver ${reference} \
             \
             -remove \
             \
@@ -814,13 +827,11 @@ if [[ $# = 9 ]]; then
             \
             -nastring . \
             \
-            -polish \
-            \
-            ${annovar}/humandb/ \
-            \
             -out ${outdir}/${internal_dataset}
 
-            gzip -f ${outdir}/${internal_dataset}.annovarInput
+            gzip -f ${outdir}/${internal_dataset}.annovarInput.vcf
+
+            rm -f ${outdir}/${internal_dataset}.avinput
 
         )}
 
@@ -906,7 +917,14 @@ if [[ $# = 9 ]]; then
 
                 pm = ((rev != "." && rev + 0 >= 0.644) || am == "P") ? 1 : 0
 
-                print $(id["Chr"]), $(id["Start"]), $(id["Ref"]), $(id["Alt"]), $(id["Alt"]),
+                # With -vcfinput, ANNOVAR's Start/Ref/Alt are ANNOVAR-style (anchor base removed,
+                # "-" for indels). Take VCF-style Chr/Pos/Ref/Alt from the ID written into the VCF
+                # (chr:pos:ref:alt, carried through as Otherinfo6), so the AF_int join and rename_ID
+                # see the same coordinates and alleles as the bim.
+
+                split($(id["Otherinfo6"]), v, ":")
+
+                print v[1], v[2], v[3], v[4], v[4],
 
                 $(id["Func.refGeneWithVer"]), $(id["Gene.refGeneWithVer"]), ef,
 
