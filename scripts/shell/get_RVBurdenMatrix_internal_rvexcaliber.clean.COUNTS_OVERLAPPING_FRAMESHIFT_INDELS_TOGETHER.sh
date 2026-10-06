@@ -920,10 +920,10 @@ if [[ $# = 9 ]]; then
 
                 pm = ((rev != "." && rev + 0 >= 0.644) || am == "P") ? 1 : 0
 
-                # With -vcfinput, ANNOVAR's Start/Ref/Alt are ANNOVAR-style (anchor base removed,
-                # "-" for indels). Take VCF-style Chr/Pos/Ref/Alt from the ID written into the VCF
-                # (chr:pos:ref:alt, carried through as Otherinfo6), so the AF_int join and rename_ID
-                # see the same coordinates and alleles as the bim.
+                # With -vcfinput, the Start/Ref/Alt columns from ANNOVAR are ANNOVAR-style (anchor
+                # base removed, "-" for indels). Take VCF-style Chr/Pos/Ref/Alt from the ID written
+                # into the VCF (chr:pos:ref:alt, carried through as Otherinfo6), so the AF_int join
+                # and rename_ID see the same coordinates and alleles as the bim.
 
                 split($(id["Otherinfo6"]), v, ":")
 
