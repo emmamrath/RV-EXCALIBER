@@ -759,9 +759,25 @@ if [[ $# = 9 ]]; then
 
             }' ${outdir}/${internal_dataset}_preprocessed.bim |
 
+            # ORIGINAL (replaced): set End = Start + (len(REF) - len(ALT)) only when REF > ALT.
+            # Correct for simple deletions, but leaves End = Start for block substitutions
+            # (e.g. ACGC>CTGT) and too short for complex indels (e.g. CTGGG>GT), so ANNOVAR
+            # rejected those variants as invalid input and they were never annotated.
+
+            #awk 'BEGIN {FS=OFS="\t"} {
+            #
+            #  if  (length($4) > length($5)) $3=$3+(length($4)-length($5))
+            #
+            #}1' > ${outdir}/${internal_dataset}.annovarInput
+
+            # FIX: End = Start + len(REF) - 1 for every variant, i.e. End covers all REF bases.
+            # Identical to the original for SNVs, insertions and simple deletions, and also
+            # correct for block substitutions and complex indels, so ANNOVAR annotates them
+            # (consistent with the gnomAD control, which handles them via -vcfinput).
+
             awk 'BEGIN {FS=OFS="\t"} {
 
-              if  (length($4) > length($5)) $3=$3+(length($4)-length($5))
+              $3 = $2 + length($4) - 1
 
             }1' > ${outdir}/${internal_dataset}.annovarInput
 
