@@ -11,6 +11,11 @@
  - For get_RVBurdenMatrix_internal_rvexcaliber.clean.sh and get_RVBurdenMatrix_gnomAD_rvexcaliber.clean.sh,
    please choose the strategy of either *COUNTS_INDELS_SEPARATELY.sh or *.COUNTS_OVERLAPPING_FRAMESHIFT_INDELS_TOGETHER.sh
 
+   When repeat-tract indel alleles are counted separately (COUNTS_INDELS_SEPARATELY), 
+   a small number of genes harbouring polymorphic homopolymer or VNTR tracts produce extreme, artefactual signals (visible as a sharp upturn in the QQ tail).
+   Pooling overlapping indels (COUNTS_OVERLAPPING_FRAMESHIFT_INDELS_TOGETHER) removes these while leaving calibration of the remaining genes unchanged.
+   Thus is it recommended to use COUNTS_OVERLAPPING_FRAMESHIFT_INDELS_TOGETHER instead of the original COUNTS_INDELS_SEPARATELY scripts.
+
  - If your internal cohort variants contain missing genotypes for reference alleles that were not called as alt-alleles (ie, they were not joint-called and instead were merged separately),
    then use the fill_missing_a2 script (either get_RVBurdenMatrix_internal_rvexcaliber.clean.fill_missing_a2.COUNTS_INDELS_SEPARATELY.sh
    or get_RVBurdenMatrix_internal_rvexcaliber.clean.fill_missing_a2.COUNTS_OVERLAPPING_FRAMESHIFT_INDELS_TOGETHER.sh).
