@@ -13,6 +13,14 @@
 # Usage:
 #   Rscript qq_midp_rvexcaliber.R <SummaryAssociations_..._allele_filter_...txt> [out_prefix] [type] [n_sim]
 #   type: standard | midp | discrete | all   (default all)
+#
+# In this script, some of the RV-EXCALIBER columns have been renamed:
+#      Original column                           Renamed to
+#      ===============                           ==========
+#      Gene                                      Gene
+#      test_allele_count                         observed
+#      test_gnomAD_allele_count_iCFgCFadjust     expected
+#      test_P_rvexcaliber_base_iCFgCFadjust      p_rvx
 #=======================================================================================================================
 
 Sys.setenv(TZ = "Australia/Sydney")
