@@ -46,6 +46,25 @@
 3. **Discrete null** – Poisson p-values against p-values simulated under the null for each gene's own expected count. 
    Points within the band indicate data consistent with a perfectly calibrated discrete test.
 
+      d=<input and output directory>
+      ds=<cohort file prefix>
+      f=$d/rvexcaliber_testing_${ds}_SummaryAssociations_allele_filter_<gnomad_filter>_0.5_<ethnicity_specification>_<rcc_or_hcc>_iCFgCFadjust_rvexcaliber_base.txt
+      Rscript RV-EXCALIBER-fork/scripts/Rscripts/qq_midp_rvexcaliber.R $f $d/qqplots
+
+ - Multiple test correction
+
+      d=<input and output directory>
+      ds=<cohort file prefix>
+      f=$d/rvexcaliber_testing_${ds}_SummaryAssociations_allele_filter_<gnomad_filter>_0.5_<ethnicity_specification>_<rcc_or_hcc>_iCFgCFadjust_rvexcaliber_base.txt
+      Rscript RV-EXCALIBER-fork/scripts/Rscripts/multiple_testing_correction.R $f
+
+ - Flag gene results in artefact-prone regions of the human genome
+
+      Rscript RV-EXCALIBER-fork/scripts/Rscripts/report_candidate_genes.R \
+        "$PWD" \
+        <cohort file prefix> \
+        <gnomad_filter>_0.5_<ethnicity_specification>_<rcc_or_hcc>
+
 ## Table of Contents
 
  - [Welcome](#welcome)
