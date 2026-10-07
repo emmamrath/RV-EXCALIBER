@@ -114,7 +114,6 @@ all_df <- sum_df |>
   ) |>
   dplyr::arrange(p)
 
-#xxxxxxxxxxxxxxxxxxxxxxxx
 n_rows        <- nrow(all_df)
 n_with_p      <- sum(!is.na(all_df$p))
 n_p_exactly_1 <- sum(all_df$p == 1, na.rm = TRUE)
@@ -125,7 +124,6 @@ cat("rows in all_df:", n_rows,
 
 # if the script has a tested/status column, cross-tabulate it against p being present
 if ("tested" %in% names(all_df)) print(table(tested = all_df$tested, has_p = !is.na(all_df$p)))
-#xxxxxxxxxxxxxxxxxxxxxxxx
 
 #-----------------------------------------------------------------------------------------------------------------------
 # Multiple-testing correction, candidate list (significant / suggestive / excluded_by_QC) and pre-specified panel
