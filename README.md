@@ -25,8 +25,10 @@
  - In addition to testing each gene individually for an excess burden in the main part of this pipeline,
    you can also test a set of genes as one set, such as the provided Huang et al. Cancer predisposition genes:
 
+```
       Rscript RV-EXCALIBER-fork/scripts/Rscripts/panel_burden_test.R  <run_directory> \
          <input_file_prefix> <MAF_threshold>_0.5_<ethnicity>_<rcc_or_hcc>  RV-EXCALIBER-fork/scripts/Rscripts/huang_2018_cancer_predisposition_genes.txt
+```
 
     The genes list file contains 1 gene name per row. The provided list came from:
     Huang KL, Mashl RJ, Wu Y, et al.
