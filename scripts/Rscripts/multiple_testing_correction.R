@@ -20,6 +20,17 @@
 #     n_show     : number of top genes to print (default 20)
 #
 # Output: <out_prefix>.tsv  (all genes, sorted by p-value, with p_bonferroni and q_fdr_bh added)
+#
+# This script outputs the following to the screen - a table of the top genes (20 by default), with these columns:
+#      Column           Meaning
+#      ======           =======
+#      Gene             gene symbol
+#      observed         qualifying alleles in your cohort
+#      expected         expected alleles from gnomAD (iCF/gCF-adjusted)
+#      ratio            observed / expected
+#      p_rvx            RV-EXCALIBER p-value
+#      p_bonferroni     Bonferroni-adjusted p-value (significant if < 0.05)
+#      q_fdr_bh         Benjamini–Hochberg FDR q-value
 #=======================================================================================================================
 
 Sys.setenv(TZ = "Australia/Sydney")
