@@ -2,7 +2,7 @@
 
 # RV-EXCALIBER
 
-## Changes made to this version, and not necessarily reflected in the documentation below:
+## Changes made to this version, and not reflected in the original documentation below:
 
  - Instead of using MCAP score, deleteriousness of missense variants is assigned by Alphamissense (P for likely_pathogenic) or Revel (score >= 0.644).
    In either of those cases, the "MCAP" score is set to 1, otherwise it remains at 0 for missense variants.
@@ -20,50 +20,58 @@
    then use the fill_missing_a2 script (either get_RVBurdenMatrix_internal_rvexcaliber.clean.fill_missing_a2.COUNTS_INDELS_SEPARATELY.sh
    or get_RVBurdenMatrix_internal_rvexcaliber.clean.fill_missing_a2.COUNTS_OVERLAPPING_FRAMESHIFT_INDELS_TOGETHER.sh).
    Otherwise, if your ref-allele genotypes correctly appear as 0/0, then use the usual script
-   (ie, either get_RVBurdenMatrix_internal_rvexcaliber.clean.COUNTS_INDELS_SEPARATELY.sh or get_RVBurdenMatrix_internal_rvexcaliber.clean.COUNTS_INDELS_SEPARATELY.sh).
+   (ie, either get_RVBurdenMatrix_internal_rvexcaliber.clean.COUNTS_INDELS_SEPARATELY.sh or get_RVBurdenMatrix_internal_rvexcaliber.clean.COUNTS_OVERLAPPING_FRAMESHIFT_INDELS_TOGETHER.sh).
 
  - In addition to testing each gene individually for an excess burden in the main part of this pipeline,
    you can also test a set of genes as one set, such as the provided Huang et al. Cancer predisposition genes:
 
       Rscript RV-EXCALIBER-fork/scripts/Rscripts/panel_burden_test.R  <run_directory> \
-         <input_file_prefix> 0.001_0.5_nfe90_amr7_eas3_rcc  RV-EXCALIBER-fork/scripts/Rscripts/huang_2018_cancer_predisposition_genes.txt
+         <input_file_prefix> <MAF_threshold>_0.5_<ethnicity>_<rcc_or_hcc>  RV-EXCALIBER-fork/scripts/Rscripts/huang_2018_cancer_predisposition_genes.txt
 
     The genes list file contains 1 gene name per row. The provided list came from:
     Huang KL, Mashl RJ, Wu Y, et al.
     Pathogenic Germline Variants in 10,389 Adult Cancers. 
     Cell. 2018 Apr 5;173(2):355-370.e14. doi: 10.1016/j.cell.2018.03.039. PMID: 29625052; PMCID: PMC5949147.
 
+    The older TNFRSF6 symbol has been renamed to the new FAS symbol.
+
 - Gene-level tests compare small allele counts (typically 1–10 expected per gene). 
-  Exact tests on small counts give conservative p-values, so a standard QQ plot falls below y = x even when the data are well calibrated. 
+  Exact tests on small counts give conservative p-values, so a standard QQ plot falls below y = x even when the data is well calibrated. 
   Three plots are produced to separate this effect from genuine miscalibration: 
 
 1. **Standard** – RV-EXCALIBER p-values against the uniform distribution (as produced by the pipeline). 
-   Expected to lie below y = x because of discreteness. 
+   Expected to lie below y = x because of discreteness when the data has small allele counts
 
 2. **Mid-p** – Poisson mid-p values, P(X > observed) + ½·P(X = observed), against the uniform distribution. 
-   The mid-p removes most of the discreteness bias, so well-calibrated data should lie close to y = x.
+   The mid-p removes most of the discreteness bias, so well-calibrated data should lie close to y = x even when it contains small allele counts.
 
 3. **Discrete null** – Poisson p-values against p-values simulated under the null for each gene's own expected count. 
    Points within the band indicate data consistent with a perfectly calibrated discrete test.
 
+```
       d=<input and output directory>
       ds=<cohort file prefix>
       f=$d/rvexcaliber_testing_${ds}_SummaryAssociations_allele_filter_<gnomad_filter>_0.5_<ethnicity_specification>_<rcc_or_hcc>_iCFgCFadjust_rvexcaliber_base.txt
       Rscript RV-EXCALIBER-fork/scripts/Rscripts/qq_midp_rvexcaliber.R $f $d/qqplots
+```
 
- - Multiple test correction
+ - Multiple test correction for these RV-EXCALIBER gene results
 
+```
       d=<input and output directory>
       ds=<cohort file prefix>
       f=$d/rvexcaliber_testing_${ds}_SummaryAssociations_allele_filter_<gnomad_filter>_0.5_<ethnicity_specification>_<rcc_or_hcc>_iCFgCFadjust_rvexcaliber_base.txt
       Rscript RV-EXCALIBER-fork/scripts/Rscripts/multiple_testing_correction.R $f
+```
 
  - Flag gene results in artefact-prone regions of the human genome
 
+```
       Rscript RV-EXCALIBER-fork/scripts/Rscripts/report_candidate_genes.R \
         "$PWD" \
         <cohort file prefix> \
         <gnomad_filter>_0.5_<ethnicity_specification>_<rcc_or_hcc>
+```
 
 ## Table of Contents
 
