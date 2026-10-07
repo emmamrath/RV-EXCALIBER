@@ -36,6 +36,8 @@
     Cell. 2018 Apr 5;173(2):355-370.e14. doi: 10.1016/j.cell.2018.03.039. PMID: 29625052; PMCID: PMC5949147.
 
     The older TNFRSF6 symbol has been renamed to the new FAS symbol.
+    This pipeline tests autosomes only (only autosomes are available in the gnomad controls), and so X/Y chromosome genes were removed: DKC1, GPC3, SH2D1A, WAS, and SRY.
+    This pipeline tests only coding regions, and so non-coding RNA gene RMRP was removed from the Huang et al. 2018 gene list.
 
 - Gene-level tests compare small allele counts (typically 1–10 expected per gene). 
   Exact tests on small counts give conservative p-values, so a standard QQ plot falls below y = x even when the data is well calibrated. 
