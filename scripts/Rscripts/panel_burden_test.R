@@ -13,8 +13,9 @@
 #   test      = exact Poisson test of pooled observed vs pooled expected (one-sided, greater), plus mid-p
 #   baseline  = rate ratio of panel genes vs all other genes, which absorbs any genome-wide sensitivity shift
 #
-# Usage: Rscript panel_burden_test.R [run_dir] [internal_dataset] [filter_string] [panel_file]
+# Usage: Rscript panel_burden_test.R [run_dir] [internal_dataset] [filter_string] [panel_file] [prefix]
 #        panel_file: optional, one gene symbol per line (e.g. Huang et al. 2018 Cell Table S1); default built-in list
+#        prefix:     optional, prepended to output file names; default = panel_file name without extension, or "builtin_panel"
 #=======================================================================================================================
  
 Sys.setenv(TZ = "Australia/Sydney")
@@ -35,6 +36,7 @@ builtin_panel <- c("ATM", "BRCA1", "BRCA2", "PALB2", "CHEK2", "BRIP1", "RAD51C",
                    "MLH1", "MSH2", "MSH6", "PMS2", "EPCAM", "TP53", "PTEN", "CDH1", "STK11",
                    "APC", "MUTYH", "CDKN2A", "BAP1", "POLE", "POLD1", "NBN", "SMAD4", "BMPR1A")
 panel_genes <- if (use_panel_file) unique(trimws(data.table::fread(args[4], header = FALSE)[[1]])) else builtin_panel
+out_prefix <- if (length(args) >= 5) args[5] else if (use_panel_file) tools::file_path_sans_ext(basename(args[4])) else "builtin_panel"
  
 out_dir <- file.path(run_dir, "panel_burden_test")
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
@@ -125,6 +127,8 @@ cat(sprintf("\nPanel vs other genes (expected >= 1): panel O/E = %.2f, other O/E
 # Write
 #-----------------------------------------------------------------------------------------------------------------------
  
-data.table::fwrite(panel_tbl, file.path(out_dir, "panel_genes.tsv"), sep = "\t")
-data.table::fwrite(tests,     file.path(out_dir, "panel_tests.tsv"), sep = "\t")
-cat("\nWritten to:", out_dir, "\n")
+out_genes <- file.path(out_dir, paste0(out_prefix, ".panel_genes.tsv"))
+out_tests <- file.path(out_dir, paste0(out_prefix, ".panel_tests.tsv"))
+data.table::fwrite(panel_tbl, out_genes, sep = "\t")
+data.table::fwrite(tests,     out_tests, sep = "\t")
+cat("\nWritten to:\n ", out_genes, "\n ", out_tests, "\n")

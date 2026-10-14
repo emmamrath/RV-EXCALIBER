@@ -653,6 +653,10 @@ dfAll <-
       "\t"
   )
 
+# Split multi-gene ANNOVAR annotations (GENE1;GENE2, GENE;GENE, readthroughs) into one row per gene
+script_dir <- dirname(normalizePath(sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))))
+source(file.path(script_dir, "gene_name_utils.R"))
+dfAll <- as.data.frame(explode_genes(dfAll, gene_col = "Gene.refGene"))
 
 # If gnomAD, then create a dummy internal AF field with and threshold
 
