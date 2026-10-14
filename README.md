@@ -77,6 +77,16 @@
         <gnomad_filter>_0.5_<ethnicity_specification>_<rcc_or_hcc>
 ```
 
+- Output a table of the nominally significant genes, including for each gene: cases count, cases frequency, gnomad controls frequency
+
+```
+      run_dir=<input and output directory>
+      ds=<cohort file prefix>
+      filt=<gnomad_filter>_0.5_<ethnicity_specification>_<rcc_or_hcc>
+      Rscript RV-EXCALIBER-fork/scripts/Rscripts/gene_variant_frequencies.R \
+        $run_dir $ds $filt $run_dir/list_any_dodgy_looking_genes_to_exclude.txt 50
+```
+
 ## Table of Contents
 
  - [Welcome](#welcome)
